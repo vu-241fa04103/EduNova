@@ -3,17 +3,18 @@ import { useLearning } from '../context/LearningContext';
 import { Sparkles, ArrowRight, CheckCircle2, ShieldCheck, BookOpen } from 'lucide-react';
 
 export default function Login() {
-  const { login, setCurrentPage } = useLearning();
-  const [email, setEmail] = useState('bhavya.sih@edunova.edu');
-  const [password, setPassword] = useState('password123');
+  const { login, setCurrentPage, user } = useLearning();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    login(email, password);
+    login(email, password, name);
   };
 
   const handleDemoLogin = () => {
-    login('bhavya.sih@edunova.edu', 'demo123');
+    login('student@edunova.edu', 'demo123', name || user?.name || 'Student');
   };
 
   return (
@@ -85,7 +86,7 @@ export default function Login() {
             className="w-full mb-5 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/70 p-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100/60 transition shadow-sm"
           >
             <Sparkles className="h-4 w-4 text-indigo-600" />
-            <span>One-Click Demo Login as <strong>Bhavya</strong></span>
+            <span>One-Click Student Demo Login</span>
           </button>
 
           <div className="relative flex items-center justify-center mb-6">
@@ -96,6 +97,20 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Your Full Name (Display Name)
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Vaishnavi"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Email Address
               </label>
               <input
@@ -103,7 +118,7 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="bhavya.sih@edunova.edu"
+                placeholder="student@edunova.edu"
                 className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 transition"
               />
             </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLearning } from '../context/LearningContext';
-import { multilingualTranslations } from '../data/mockData';
+import { multilingualTranslations, getLocalizedWelcome } from '../data/mockData';
 import {
   TrendingUp,
   BookOpen,
@@ -20,7 +20,7 @@ export default function Dashboard() {
   const t = multilingualTranslations[language] || multilingualTranslations.en;
 
   // Find currently recommended topic
-  const recommendedNode = pathNodes.find(n => n.status === 'recommended') || pathNodes[3];
+  const recommendedNode = pathNodes.find(n => n.status === 'recommended') || pathNodes[0] || {};
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -29,11 +29,18 @@ export default function Dashboard() {
         <div className="absolute -right-10 -bottom-10 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-md mb-3">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span>Smart India Hackathon 2026</span>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-md">
+                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                <span>Smart India Hackathon 2026</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/40 px-3 py-1 text-xs font-semibold backdrop-blur-md border border-white/20">
+                <span>{user.course || "B.Tech Engineering"}</span>
+              </div>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{t.welcome}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+              {getLocalizedWelcome(language, user?.name)}
+            </h1>
             <p className="mt-1 text-sm sm:text-base text-indigo-100 max-w-xl">
               {t.subtitle}
             </p>

@@ -29,7 +29,7 @@ An AI-driven continuous personalized learning platform designed to bridge knowle
 
 ## 🌟 Key Features
 
-- 🔐 **Student Authentication**: Login and Signup with one-click demo access for **Bhavya**.
+- 🔐 **Student Authentication**: Login and Signup with one-click demo access.
 - 📊 **Dynamic Dashboard**:
   - Live progress tracking (78%), lessons completed (12/16), average quiz score (85%), and study streak (5 days).
   - Highlighted continuous learning recommendation based on recent tests.
@@ -82,8 +82,8 @@ http://localhost:3000
 
 ## 🏆 SIH 2026 Demo Script for Hackathon Judges
 
-1. **Login Screen**: Click **"One-Click Demo Login as Bhavya"** to show instant student access.
-2. **Dashboard**: Show Bhavya's 78% progress, study streak, and the **AI Recommendation banner** showing *Machine Learning (PCA)*.
+1. **Login Screen**: Click **"One-Click Student Demo Login"** or Sign Up with your student profile.
+2. **Dashboard**: Show the personalized student greeting, 78% progress, study streak, and the **AI Recommendation banner** showing *Machine Learning (PCA)*.
 3. **Take Quiz**:
    - Go to **Smart Quiz**.
    - Answer the 6 questions.

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLearning } from '../context/LearningContext';
-import { mlQuizQuestions } from '../data/mockData';
+import { departmentQuizzes, engineeringDepartments } from '../data/mockData';
 import {
   HelpCircle,
   CheckCircle2,
@@ -12,20 +12,39 @@ import {
   MapPin,
   Trophy,
   Sparkles,
-  Clock
+  Clock,
+  Layers
 } from 'lucide-react';
 
 export default function Quiz() {
-  const { processQuizResults, setCurrentPage, lastQuizResult } = useLearning();
+  const { processQuizResults, setCurrentPage, lastQuizResult, user } = useLearning();
 
-  const [selectedSubject, setSelectedSubject] = useState('ml');
+  const [selectedSubject, setSelectedSubject] = useState(user.department || 'ai_ds');
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [scoreReport, setScoreReport] = useState(null);
 
-  const questions = mlQuizQuestions;
-  const currentQ = questions[currentQuestionIdx];
+  // Sync selectedSubject if user.department changes
+  useEffect(() => {
+    if (user.department && departmentQuizzes[user.department]) {
+      setSelectedSubject(user.department);
+      setCurrentQuestionIdx(0);
+      setSelectedAnswers({});
+      setIsSubmitted(false);
+    }
+  }, [user.department]);
+
+  const questions = departmentQuizzes[selectedSubject] || departmentQuizzes.ai_ds;
+  const currentQ = questions[currentQuestionIdx] || questions[0];
+
+  const handleSelectSubject = (deptId) => {
+    setSelectedSubject(deptId);
+    setCurrentQuestionIdx(0);
+    setSelectedAnswers({});
+    setIsSubmitted(false);
+    setScoreReport(null);
+  };
 
   const handleSelectOption = (optIndex) => {
     setSelectedAnswers(prev => ({
@@ -75,15 +94,15 @@ export default function Quiz() {
 
     // Fallback if none in weak
     if (weakAreas.length === 0 && score < questions.length) {
-      weakAreas.push("PCA");
+      weakAreas.push(questions[0]?.topic || "Engineering Concepts");
     }
 
     const report = {
       score,
       total: questions.length,
       percentage: Math.round((score / questions.length) * 100),
-      strongAreas: strongAreas.length > 0 ? strongAreas : ["General ML"],
-      weakAreas: weakAreas.length > 0 ? weakAreas : ["Dimensionality Reduction"]
+      strongAreas: strongAreas.length > 0 ? strongAreas : ["Fundamental Logic"],
+      weakAreas: weakAreas.length > 0 ? weakAreas : ["Applied Problem Solving"]
     };
 
     setScoreReport(report);
@@ -109,25 +128,27 @@ export default function Quiz() {
             <div className="flex items-center gap-2 mb-1">
               <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-600"></span>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900">
-                Smart Adaptive Assessment
+                Smart Adaptive Engineering Assessment
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-slate-500">
-              Evaluates current concepts and dynamically updates your personalized roadmap
+              Evaluates core concepts and dynamically updates your personalized engineering roadmap.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">Subject:</span>
+            <span className="text-xs font-semibold text-slate-500">Branch:</span>
             <select
               value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
+              onChange={(e) => handleSelectSubject(e.target.value)}
               disabled={isSubmitted}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 cursor-pointer"
             >
-              <option value="ml">Machine Learning (Advanced)</option>
-              <option value="python">Python OOP & Data Structures</option>
-              <option value="dbms">DBMS & SQL Architecture</option>
+              {engineeringDepartments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.shortName} Assessment
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -245,10 +266,10 @@ export default function Quiz() {
               <Trophy className="h-8 w-8" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
-              Quiz Completed! 🎉
+              Assessment Completed! 🎉
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Your performance has been evaluated by the AI Learning Engine.
+              Your domain performance has been evaluated by the AI Learning Engine.
             </p>
 
             <div className="mt-4 inline-flex items-baseline gap-2 bg-indigo-50 border border-indigo-100 px-6 py-3 rounded-2xl">
@@ -284,7 +305,7 @@ export default function Quiz() {
                 {scoreReport.weakAreas.map((topic, i) => (
                   <li key={i} className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-rose-200">
                     <span className="text-rose-600 font-bold">⚠</span>
-                    <span>{topic} — (Dimensionality Reduction)</span>
+                    <span>{topic}</span>
                   </li>
                 ))}
               </ul>
@@ -301,7 +322,7 @@ export default function Quiz() {
                 Personalized Learning Path Updated!
               </h4>
               <p className="text-xs text-slate-600 mt-0.5">
-                We've adjusted your roadmap to prioritize <strong>PCA</strong> before proceeding to Clustering.
+                We've adjusted your roadmap to prioritize <strong>{scoreReport.weakAreas[0]}</strong> before proceeding to advanced capstones.
               </p>
             </div>
 

@@ -1,14 +1,32 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { initialUserData, learningPathNodes as defaultNodes, subjectAnalytics as defaultAnalytics } from '../data/mockData';
+import {
+  initialUserData,
+  departmentLearningPaths,
+  engineeringDepartments,
+  subjectAnalytics as defaultAnalytics
+} from '../data/mockData';
 
 const LearningContext = createContext();
 
 export const LearningProvider = ({ children }) => {
-  // Auth state
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default to logged in as Bhavya for instant test, can toggle
+  // Auth & user state - Start at Login screen by default
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('edunova_user');
-    return saved ? JSON.parse(saved) : initialUserData;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...initialUserData,
+          ...parsed,
+          department: parsed.department || 'ai_ds',
+          selectedInterests: parsed.selectedInterests || initialUserData.selectedInterests
+        };
+      } catch (e) {
+        return initialUserData;
+      }
+    }
+    return initialUserData;
   });
 
   // Current Active Page
@@ -17,10 +35,18 @@ export const LearningProvider = ({ children }) => {
   // Selected Language
   const [language, setLanguage] = useState('en');
 
-  // Learning Path nodes state
+  // Learning Path nodes state based on user's active department
   const [pathNodes, setPathNodes] = useState(() => {
     const saved = localStorage.getItem('edunova_path');
-    return saved ? JSON.parse(saved) : defaultNodes;
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // fallback below
+      }
+    }
+    const dept = user?.department || 'ai_ds';
+    return departmentLearningPaths[dept] || departmentLearningPaths.ai_ds;
   });
 
   // Subject analytics state
@@ -35,17 +61,17 @@ export const LearningProvider = ({ children }) => {
     score: 8,
     total: 10,
     percentage: 80,
-    strongAreas: ['Classification', 'Regression'],
-    weakAreas: ['PCA', 'Clustering'],
+    strongAreas: ['Core Concepts', 'Problem Solving'],
+    weakAreas: ['Complex Formulations', 'Applied Analysis'],
     date: 'Recent'
   });
 
   // AI Tutor Messages
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState(() => [
     {
       id: 1,
       sender: 'ai',
-      text: "Hello Bhavya! 👋 I'm your EduNova AI Personal Tutor. I can explain any topic, solve doubts step-by-step, or generate customized practice questions. What are we studying today?",
+      text: `Hello ${user?.name && user.name !== 'Student' ? user.name : 'there'}! 👋 I'm your EduNova AI Personal Tutor. I cover all engineering subjects across Computer Science, Electronics, Mechanical, Civil, Electrical, and AI. What are we studying today?`,
       timestamp: '10:00 AM'
     }
   ]);
@@ -65,12 +91,45 @@ export const LearningProvider = ({ children }) => {
     localStorage.setItem('edunova_analytics', JSON.stringify(analytics));
   }, [analytics]);
 
-  const login = (email, password) => {
+  // Switch engineering department & interest tracks
+  const changeDepartment = (deptId, newInterests = null) => {
+    const deptInfo = engineeringDepartments.find(d => d.id === deptId) || engineeringDepartments[0];
+    const newPath = departmentLearningPaths[deptId] || departmentLearningPaths.ai_ds;
+    const interests = newInterests || deptInfo.subjects.slice(0, 3);
+
+    const updatedUser = {
+      ...user,
+      department: deptId,
+      course: `B.Tech in ${deptInfo.name}`,
+      selectedInterests: interests
+    };
+
+    setUser(updatedUser);
+    setPathNodes(newPath);
+
+    // Update analytics labels for that department
+    setAnalytics([
+      { id: "core1", name: interests[0] || deptInfo.subjects[0], score: 88, status: "Strong", color: "from-emerald-500 to-teal-600", trend: "+4%" },
+      { id: "core2", name: interests[1] || deptInfo.subjects[1], score: 80, status: "Good", color: "from-indigo-500 to-blue-600", trend: "+6%" },
+      { id: "core3", name: interests[2] || deptInfo.subjects[2] || "Applied Engineering", score: 72, status: "Average", color: "from-amber-500 to-orange-500", trend: "+2%" },
+      { id: "gap", name: deptInfo.subjects[3] || "Advanced Core", score: 65, status: "Needs Improvement", color: "from-rose-500 to-red-600", trend: "-3%", isWeak: true }
+    ]);
+  };
+
+  // Update Avatar from Camera or Gallery
+  const updateAvatar = (newAvatarUrl) => {
+    setUser(prev => ({
+      ...prev,
+      avatar: newAvatarUrl
+    }));
+  };
+
+  const login = (email, password, customName) => {
     setIsAuthenticated(true);
     setUser(prev => ({
       ...prev,
-      name: email.split('@')[0] || "Bhavya",
-      email: email
+      name: customName?.trim() || (prev.name && prev.name !== 'Student' ? prev.name : (email ? email.split('@')[0] : "Student")),
+      email: email || prev.email
     }));
     setCurrentPage('dashboard');
   };
@@ -93,31 +152,18 @@ export const LearningProvider = ({ children }) => {
       date: 'Just now'
     });
 
-    // Update nodes based on weak areas
+    // Update node status based on weak areas
     setPathNodes(prev =>
       prev.map(node => {
-        if (weakTopics.includes('PCA') && node.id === 4) {
+        const isTopicWeak = weakTopics.some(w => node.title.toLowerCase().includes(w.toLowerCase()) || node.subject.toLowerCase().includes(w.toLowerCase()));
+        if (isTopicWeak || node.id === 4) {
           return {
             ...node,
             status: 'recommended',
-            recommendedReason: '⚠ Priority Review: Your quiz detected difficulty in Eigenvectors & Dimensionality Reduction.'
+            recommendedReason: `⚠ Priority Adaptive Review: Quiz detected difficulty in ${weakTopics[0] || 'core concepts'}. Review this before advancing.`
           };
         }
         return node;
-      })
-    );
-
-    // Update analytics
-    setAnalytics(prev =>
-      prev.map(subject => {
-        if (subject.id === 'ml') {
-          return {
-            ...subject,
-            score: Math.min(100, Math.max(50, Math.round((subject.score + percentage) / 2))),
-            trend: percentage >= 80 ? '+5%' : '-2%'
-          };
-        }
-        return subject;
       })
     );
   };
@@ -142,7 +188,9 @@ export const LearningProvider = ({ children }) => {
         messages,
         setMessages,
         login,
-        logout
+        logout,
+        changeDepartment,
+        updateAvatar
       }}
     >
       {children}

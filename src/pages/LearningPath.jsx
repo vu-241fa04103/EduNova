@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLearning } from '../context/LearningContext';
+import { engineeringDepartments } from '../data/mockData';
 import {
   CheckCircle2,
   Lock,
@@ -11,12 +12,21 @@ import {
   Code2,
   BookOpen,
   Info,
-  HelpCircle
+  HelpCircle,
+  Cpu,
+  Layers
 } from 'lucide-react';
 
 export default function LearningPath() {
-  const { pathNodes, setPathNodes, setCurrentPage } = useLearning();
-  const [selectedNode, setSelectedNode] = useState(pathNodes.find(n => n.status === 'recommended') || pathNodes[3]);
+  const { pathNodes, setPathNodes, setCurrentPage, user, changeDepartment } = useLearning();
+  const [selectedNode, setSelectedNode] = useState(() => pathNodes.find(n => n.status === 'recommended') || pathNodes[0]);
+
+  // Sync selectedNode when pathNodes changes (e.g. department switch)
+  useEffect(() => {
+    setSelectedNode(pathNodes.find(n => n.status === 'recommended') || pathNodes[0]);
+  }, [pathNodes]);
+
+  const activeDeptInfo = engineeringDepartments.find(d => d.id === user.department) || engineeringDepartments[0];
 
   const handleMarkComplete = (nodeId) => {
     setPathNodes(prev =>
@@ -28,15 +38,18 @@ export default function LearningPath() {
           return {
             ...node,
             status: 'recommended',
-            recommendedReason: 'Unlocked! Next sequential milestone in Machine Learning.'
+            recommendedReason: 'Unlocked! Next sequential milestone in your engineering track.'
           };
         }
         return node;
       })
     );
-    // update selected
     setSelectedNode(prev => ({ ...prev, status: 'completed', score: 92 }));
   };
+
+  const completedCount = pathNodes.filter(n => n.status === 'completed').length;
+  const activeCount = pathNodes.filter(n => n.status === 'recommended').length;
+  const lockedCount = pathNodes.filter(n => n.status === 'locked').length;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -46,27 +59,53 @@ export default function LearningPath() {
           <div className="flex items-center gap-2 mb-1">
             <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-600"></span>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900">
-              Personalized Learning Path
+              Personalized Engineering Roadmap
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 max-w-xl">
-            Adaptive curriculum automatically re-ordered based on your quiz diagnostics and learning gaps.
+            Adaptive curriculum for <strong>{activeDeptInfo.name}</strong>, dynamically prioritized based on your diagnostics.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-            <span>3 Completed</span>
+            <span>{completedCount} Done</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl">
             <span className="h-2.5 w-2.5 rounded-full bg-indigo-600 animate-ping"></span>
-            <span>1 Active</span>
+            <span>{activeCount} Active</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl">
             <Lock className="h-3 w-3" />
-            <span>2 Locked</span>
+            <span>{lockedCount} Locked</span>
           </div>
+        </div>
+      </div>
+
+      {/* Engineering Branch Track Selector Bar */}
+      <div className="rounded-2xl bg-white p-3 border border-slate-200/70 shadow-sm">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2 pr-1 shrink-0 flex items-center gap-1">
+            <Layers className="h-3.5 w-3.5 text-indigo-600" />
+            Track:
+          </span>
+          {engineeringDepartments.map((dept) => {
+            const isCurrent = user.department === dept.id;
+            return (
+              <button
+                key={dept.id}
+                onClick={() => changeDepartment(dept.id)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 ${
+                  isCurrent
+                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-200'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/80'
+                }`}
+              >
+                {dept.shortName}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -76,10 +115,10 @@ export default function LearningPath() {
         <div className="lg:col-span-7 rounded-3xl bg-white p-6 sm:p-7 border border-slate-100 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              Curriculum Roadmap
+              {activeDeptInfo.shortName} Learning Sequence
             </h2>
             <span className="text-xs font-semibold text-indigo-600">
-              Flow: Foundation → ML Mastery
+              Flow: Foundations → Domain Capstone
             </span>
           </div>
 
@@ -137,7 +176,7 @@ export default function LearningPath() {
                       )}
                       {isRecommended && (
                         <span className="text-[11px] font-extrabold text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-full">
-                          🔵 Recommended Now
+                          🔵 Recommended Focus
                         </span>
                       )}
                       {isLocked && (
@@ -209,7 +248,7 @@ export default function LearningPath() {
               {/* Study Materials */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Curated Study Resources
+                  Curated Engineering Resources
                 </h4>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-indigo-50/50 border border-indigo-100 hover:bg-indigo-50 transition cursor-pointer">
@@ -218,8 +257,8 @@ export default function LearningPath() {
                         <Play className="h-4 w-4 fill-white" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">PCA Intuition in 15 mins</p>
-                        <p className="text-[10px] text-slate-500">Video Walkthrough • 14 mins</p>
+                        <p className="text-xs font-bold text-slate-900">Mastery Video Lecture</p>
+                        <p className="text-[10px] text-slate-500">Curated Concept Animation • 15 mins</p>
                       </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-indigo-600" />
@@ -231,8 +270,8 @@ export default function LearningPath() {
                         <Code2 className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">Scikit-Learn PCA Notebook</p>
-                        <p className="text-[10px] text-slate-500">Interactive Python Sandbox</p>
+                        <p className="text-xs font-bold text-slate-900">Practical Lab & Code Notebook</p>
+                        <p className="text-[10px] text-slate-500">Interactive Simulation & Exercises</p>
                       </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-slate-400" />
@@ -244,8 +283,8 @@ export default function LearningPath() {
                         <FileText className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">Eigenvectors Cheat Sheet</p>
-                        <p className="text-[10px] text-slate-500">PDF Guide • 5 min read</p>
+                        <p className="text-xs font-bold text-slate-900">Engineering Formula Cheat Sheet</p>
+                        <p className="text-[10px] text-slate-500">PDF Summary Guide • 5 min read</p>
                       </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-slate-400" />

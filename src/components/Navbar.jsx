@@ -77,7 +77,7 @@ export default function Navbar({ onToggleSidebar }) {
             className="h-7 w-7 rounded-full object-cover ring-2 ring-indigo-500/20"
           />
           <div className="hidden text-left md:block">
-            <p className="text-xs font-bold text-slate-800 leading-tight">{user.name}</p>
+            <p className="text-xs font-bold text-slate-800 leading-tight">{user?.name || "Student"}</p>
             <p className="text-[10px] text-slate-500 leading-none">Student</p>
           </div>
         </div>

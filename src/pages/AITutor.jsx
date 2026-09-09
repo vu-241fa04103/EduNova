@@ -26,11 +26,11 @@ export default function AITutor() {
   const t = multilingualTranslations[language] || multilingualTranslations.en;
 
   const quickPrompts = [
-    "Explain PCA in simple words",
-    "Difference between Supervised & Unsupervised Learning",
-    "How does Gradient Descent optimize weights?",
-    "What is the Elbow Method in K-Means?",
-    "Why is F1-score better than Accuracy for imbalanced data?"
+    "Explain Bernoulli's principle in simple words",
+    "Difference between I2C and SPI in Embedded Systems",
+    "What are ACID properties in Database Systems?",
+    "Explain PCA and Dimensionality Reduction",
+    "What is the Nyquist Sampling Theorem in ECE?"
   ];
 
   const scrollToBottom = () => {
@@ -102,9 +102,37 @@ export default function AITutor() {
       };
     }
 
+    if (q.includes('bernoulli') || q.includes('fluid')) {
+      return {
+        text: `### 🌊 Bernoulli's Principle in Simple Words\n\n**Bernoulli's Principle** states that in a flowing fluid, **an increase in the speed of the fluid occurs simultaneously with a decrease in its static pressure or potential energy**.\n\n$$\\frac{P}{\\rho} + \\frac{v^2}{2} + gz = \\text{constant}$$\n\n💡 **Everyday Analogy: Airplane Wings (Lift)**\nThe top of an airplane wing is curved, forcing air to travel faster over the top than underneath. According to Bernoulli, faster air means lower pressure on top. The higher pressure underneath pushes the airplane upward, creating lift!`,
+        actionPrompt: "Explore Mechanical Fluid Dynamics"
+      };
+    }
+
+    if (q.includes('i2c') || q.includes('spi') || q.includes('embedded')) {
+      return {
+        text: `### ⚡ I2C vs. SPI Communication Protocols (ECE)\n\n| Parameter | I2C (Inter-Integrated Circuit) | SPI (Serial Peripheral Interface) |\n| :--- | :--- | :--- |\n| **Wires Required** | 2 wires (SDA, SCL) | 4 wires (MOSI, MISO, SCK, CS/SS) |\n| **Speed** | 100 kHz to 3.4 MHz | Up to 50+ MHz (Much faster) |\n| **Communication** | Half-duplex (One at a time) | Full-duplex (Simultaneous bidirectional) |\n| **Multi-device** | Software addressing (7-bit / 10-bit) | Hardware Chip Select (CS) pin per slave |\n| **Best For** | Sensors requiring few pins | High-speed displays, SD cards, flash memory |`,
+        actionPrompt: "Open ECE Embedded Systems Path"
+      };
+    }
+
+    if (q.includes('acid') || q.includes('dbms') || q.includes('transaction')) {
+      return {
+        text: `### 🗄️ ACID Properties in Database Systems (CSE)\n\n**ACID** ensures that database transactions are processed reliably:\n\n1. **Atomicity ('All or Nothing'):** The transaction either completes entirely or rolls back completely. If money is deducted from Account A, it MUST be credited to Account B, or the entire operation is cancelled.\n2. **Consistency:** The database strictly transitions from one valid state to another, satisfying all schema constraints and foreign keys.\n3. **Isolation:** Concurrent transactions execute without interfering with one another as if they occurred serially.\n4. **Durability:** Once committed, the changes are permanent on non-volatile storage, surviving power failures or crashes.`,
+        actionPrompt: "Review DBMS Learning Track"
+      };
+    }
+
+    if (q.includes('nyquist') || q.includes('sampling')) {
+      return {
+        text: `### 📡 Nyquist-Shannon Sampling Theorem (ECE / Signal Processing)\n\nTo perfectly reconstruct an analog continuous signal into digital samples without aliasing (distortion), **the sampling frequency $f_s$ must be at least twice the maximum frequency component $f_{max}$ of the signal**:\n\n$$f_s \\ge 2 \\cdot f_{max}$$\n\n💡 **Example:** Human hearing ranges up to $20\\text{ kHz}$. Audio CDs use a sampling rate of $44.1\\text{ kHz}$, which is safely above the Nyquist rate ($2 \\times 20\\text{ kHz} = 40\\text{ kHz}$).`,
+        actionPrompt: "View Signals & Systems Module"
+      };
+    }
+
     // General academic doubt answer
     return {
-      text: `### 📚 EduNova AI Academic Breakdown\n\nThank you for asking: **"${query}"**\n\nHere is a clear educational breakdown:\n\n1. **Core Concept:** In AI and Computer Science, this concept focuses on structured abstraction, computational efficiency, and robust data representations.\n2. **Practical Significance:** Understanding this topic helps you write cleaner algorithmic implementations and perform well in technical interviews and hackathons.\n3. **Key Recommendation:** Combine theoretical intuition with hands-on Python practice to solidify your mastery.\n\n*Would you like a step-by-step code example or a quick practice question on this topic?*`,
+      text: `### 📚 EduNova Universal Engineering Breakdown\n\nThank you for asking: **"${query}"**\n\n1. **Core Concept:** In engineering systems, this principle focuses on structural equilibrium, mathematical optimization, and robust physical implementations.\n2. **Practical Significance:** Understanding this topic prepares you for technical problem solving, campus placements, and hands-on laboratory projects.\n3. **Key Recommendation:** Cross-verify theoretical derivation with simulation software (MATLAB, Simulink, SolidWorks, or Scikit-Learn).\n\n*Would you like a step-by-step numerical example or practice questions on this topic?*`,
       actionPrompt: null
     };
   };

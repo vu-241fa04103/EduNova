@@ -3,10 +3,10 @@ import { useLearning } from '../context/LearningContext';
 import { Sparkles, ArrowRight, BookOpen, Check } from 'lucide-react';
 
 export default function Signup() {
-  const { login, setCurrentPage } = useLearning();
+  const { login, setCurrentPage, setUser } = useLearning();
   const [formData, setFormData] = useState({
-    name: 'Bhavya',
-    email: 'bhavya.sih@edunova.edu',
+    name: '',
+    email: '',
     password: '',
     targetCareer: 'Machine Learning Engineer',
     college: 'Smart India Hackathon 2026'
@@ -14,7 +14,13 @@ export default function Signup() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    login(formData.email, formData.password);
+    login(formData.email, formData.password, formData.name);
+    setUser(prev => ({
+      ...prev,
+      name: formData.name?.trim() || prev.name || "Student",
+      email: formData.email || prev.email,
+      targetGoal: formData.targetCareer || prev.targetGoal
+    }));
   };
 
   return (
@@ -40,6 +46,7 @@ export default function Signup() {
             <input
               type="text"
               required
+              placeholder="e.g. Vaishnavi"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none"
@@ -51,6 +58,7 @@ export default function Signup() {
             <input
               type="email"
               required
+              placeholder="you@college.edu"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none"

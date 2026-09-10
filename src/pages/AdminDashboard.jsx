@@ -16,24 +16,37 @@ import {
   Sparkles,
   ArrowUpRight,
   TrendingUp,
-  Award
+  Award,
+  ClipboardList
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const {
     user,
-    usersDb,
+    students: studentsList,
     departments,
     quizzes,
+    departmentTasks,
+    addDepartmentTask,
+    deleteDepartmentTask,
     deleteStudent,
     addQuizQuestion,
     deleteQuizQuestion,
     addDepartmentSubject
   } = useLearning();
 
-  const [activeTab, setActiveTab] = useState('students'); // 'students' | 'questions' | 'courses' | 'analytics'
+  const [activeTab, setActiveTab] = useState('students'); // 'students' | 'tasks' | 'questions' | 'courses' | 'analytics'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('all');
+
+  // Task Form State
+  const [taskDept, setTaskDept] = useState('ai_ds');
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskSkillTag, setTaskSkillTag] = useState('');
+  const [taskDeadline, setTaskDeadline] = useState('3 days');
+  const [taskPoints, setTaskPoints] = useState(50);
+  const [taskDescription, setTaskDescription] = useState('');
+  const [taskAddedSuccess, setTaskAddedSuccess] = useState(false);
 
   // Question Form State
   const [selectedQuestionDept, setSelectedQuestionDept] = useState('ai_ds');
@@ -50,7 +63,7 @@ export default function AdminDashboard() {
   const [subjectAddedSuccess, setSubjectAddedSuccess] = useState(false);
 
   // Students list
-  const students = usersDb.filter(u => u.role === 'student');
+  const students = (studentsList || []).filter(u => u.role === 'student');
 
   const filteredStudents = students.filter(student => {
     const matchesSearch =
@@ -105,6 +118,30 @@ export default function AdminDashboard() {
     setNewSubjectName('');
     setSubjectAddedSuccess(true);
     setTimeout(() => setSubjectAddedSuccess(false), 3000);
+  };
+
+  // Handle Add Domain Task
+  const handleAddTask = (e) => {
+    e.preventDefault();
+    if (!taskTitle.trim() || !taskDescription.trim()) {
+      alert("Please provide a task title and description.");
+      return;
+    }
+    const newTask = {
+      department: taskDept,
+      title: taskTitle.trim(),
+      skillTag: taskSkillTag.trim() || 'Core Engineering',
+      deadline: taskDeadline.trim() || '3 days',
+      points: Number(taskPoints) || 50,
+      description: taskDescription.trim(),
+      assignedBy: user.name || 'Faculty Mentor'
+    };
+    addDepartmentTask(newTask);
+    setTaskTitle('');
+    setTaskSkillTag('');
+    setTaskDescription('');
+    setTaskAddedSuccess(true);
+    setTimeout(() => setTaskAddedSuccess(false), 3000);
   };
 
   return (
@@ -189,6 +226,18 @@ export default function AdminDashboard() {
         >
           <Users className="h-4 w-4" />
           <span>Student Directory & Live Roster ({students.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('tasks')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+            activeTab === 'tasks'
+              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <ClipboardList className="h-4 w-4" />
+          <span>Faculty Domain Tasks ({(departmentTasks || []).length})</span>
         </button>
 
         <button
@@ -382,7 +431,195 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 2: Question Bank Manager */}
+      {/* TAB: Faculty Domain Tasks Manager */}
+      {activeTab === 'tasks' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Form: Assign Domain Task (5 cols) */}
+          <div className="lg:col-span-5 rounded-3xl bg-white p-6 sm:p-7 border border-slate-100 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+              <h3 className="font-bold text-slate-900">Assign New Department Task</h3>
+            </div>
+            <p className="text-xs text-slate-500">
+              Create skill-building tasks for specific branch students (AI/DS, CSE, ECE, Mech, Civil, EEE) or all departments.
+            </p>
+
+            {taskAddedSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span>Domain task successfully assigned to cohort!</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAddTask} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Target Department / Cohort
+                </label>
+                <select
+                  value={taskDept}
+                  onChange={(e) => setTaskDept(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-indigo-600 focus:outline-none"
+                >
+                  <option value="all">All Engineering Departments (General)</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>{dept.name} ({dept.shortName})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Task Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Implement Linear Regression from scratch..."
+                  value={taskTitle}
+                  onChange={(e) => setTaskTitle(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Skill Tag / Domain
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Machine Learning"
+                    value={taskSkillTag}
+                    onChange={(e) => setTaskSkillTag(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Deadline Window
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 3 days"
+                    value={taskDeadline}
+                    onChange={(e) => setTaskDeadline(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Task Points (XP)
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  max="500"
+                  value={taskPoints}
+                  onChange={(e) => setTaskPoints(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Task Detailed Instructions & Deliverables
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Describe the problem, input specifications, datasets to use, and expected code output..."
+                  value={taskDescription}
+                  onChange={(e) => setTaskDescription(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Publish Domain Task to Students</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Right: Active Assigned Tasks List (7 cols) */}
+          <div className="lg:col-span-7 rounded-3xl bg-white p-6 sm:p-7 border border-slate-100 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Active Department Domain Tasks</h3>
+                <p className="text-xs text-slate-500">Live task bank assigned to student cohorts</p>
+              </div>
+              <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+                {(departmentTasks || []).length} Assigned Tasks
+              </span>
+            </div>
+
+            <div className="space-y-3.5 max-h-[560px] overflow-y-auto pr-1">
+              {(departmentTasks || []).map((task) => {
+                const targetDeptName = task.department === 'all' 
+                  ? 'All Engineering Branches' 
+                  : (departments.find(d => d.id === task.department)?.name || task.department);
+                const studentsInDept = students.filter(s => task.department === 'all' || s.department === task.department);
+                const completedCount = studentsInDept.filter(s => s.completedTaskIds?.includes(task.id)).length;
+
+                return (
+                  <div key={task.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white transition-all space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                            {targetDeptName}
+                          </span>
+                          <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                            {task.skillTag}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-500">
+                            ⏱ {task.deadline}
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                            +{task.points || 50} XP
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-slate-900 text-sm">{task.title}</h4>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete task "${task.title}"?`)) {
+                            deleteDepartmentTask(task.id);
+                          }
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        title="Delete Task"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-slate-600 bg-white p-2.5 rounded-xl border border-slate-100">
+                      {task.description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                      <span>Assigned by: <strong>{task.assignedBy || 'Faculty Mentor'}</strong></span>
+                      <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                        {completedCount} / {studentsInDept.length} Students Completed
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: Question Bank Manager */}
       {activeTab === 'questions' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Form: Add Question (5 cols) */}

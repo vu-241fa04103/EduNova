@@ -27,7 +27,9 @@ export default function Dashboard() {
     overallProgressPercent,
     quizAccuracyAvg,
     enrolledSubjectMastery,
-    identifiedWeakAreaTopic
+    identifiedWeakAreaTopic,
+    departmentTasks,
+    completeStudentTask
   } = useLearning();
   const t = multilingualTranslations[language] || multilingualTranslations.en;
 
@@ -321,6 +323,91 @@ export default function Dashboard() {
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Faculty Assigned Domain Tasks */}
+          <div className="rounded-3xl bg-white p-6 sm:p-7 border border-slate-100 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                    Faculty Assigned Domain Tasks
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Tasks assigned by faculty specifically for {user.course || 'your department'}.
+                </p>
+              </div>
+              <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 shrink-0">
+                {(departmentTasks || []).filter(t => (t.department === user.department || t.department === 'all') && user.completedTaskIds?.includes(t.id)).length} / {(departmentTasks || []).filter(t => t.department === user.department || t.department === 'all').length} Done
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {(departmentTasks || [])
+                .filter(t => t.department === user.department || t.department === 'all')
+                .map((task) => {
+                  const isDone = user.completedTaskIds?.includes(task.id);
+                  return (
+                    <div
+                      key={task.id}
+                      className={`p-4 rounded-2xl border transition-all ${
+                        isDone
+                          ? 'bg-emerald-50/50 border-emerald-200'
+                          : 'bg-slate-50 hover:bg-indigo-50/30 border-slate-200'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                              {task.skillTag || task.topic}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400">
+                              ⏱ Due in {task.deadline}
+                            </span>
+                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                              +{task.points || 50} XP
+                            </span>
+                          </div>
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                            {task.title}
+                          </h4>
+                          <p className="text-xs text-slate-600">
+                            {task.description}
+                          </p>
+                          <span className="text-[10px] text-slate-400 block">
+                            Assigned by: {task.assignedBy || 'Faculty Mentor'}
+                          </span>
+                        </div>
+
+                        <div className="shrink-0">
+                          {isDone ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-300">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              <span>Submitted & Completed</span>
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => completeStudentTask(task.id)}
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow transition"
+                            >
+                              <span>Complete & Submit</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {(departmentTasks || []).filter(t => t.department === user.department || t.department === 'all').length === 0 && (
+                <div className="p-4 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">
+                  No pending domain tasks assigned by faculty for your branch yet.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

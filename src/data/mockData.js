@@ -108,22 +108,120 @@ export const engineeringDepartments = [
   }
 ];
 
-export const initialUserData = {
-  name: "Student",
-  email: "student@edunova.edu",
-  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-  department: "ai_ds",
-  course: "B.Tech in Artificial Intelligence & Data Science",
-  college: "Smart India Hackathon 2026 Finalist Team",
-  selectedInterests: ["Machine Learning", "Statistics & Probability", "Python for Data Science"],
-  overallProgress: 78,
-  completedLessons: 12,
-  totalLessons: 16,
-  averageQuizScore: 85,
-  streakDays: 5,
-  targetGoal: "Machine Learning Engineer",
-  preferredLanguage: "en"
+export const defaultUsers = [
+  {
+    id: "user-1",
+    name: "Vaishnavi",
+    email: "student@edunova.edu",
+    password: "demo123",
+    role: "student",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    department: "ai_ds",
+    course: "B.Tech in Artificial Intelligence & Data Science",
+    college: "Smart India Hackathon Finalist Team",
+    selectedInterests: ["Machine Learning", "Statistics & Probability", "Python for Data Science"],
+    overallProgress: 50,
+    completedLessons: 3,
+    totalLessons: 6,
+    averageQuizScore: 80,
+    streakDays: 5,
+    targetGoal: "Machine Learning Engineer",
+    preferredLanguage: "en",
+    quizHistory: [
+      {
+        id: 101,
+        department: "ai_ds",
+        score: 8,
+        total: 10,
+        percentage: 80,
+        date: "Yesterday",
+        strongAreas: ["Supervised vs Unsupervised", "Regression Analysis"],
+        weakAreas: ["Principal Component Analysis (PCA)"]
+      }
+    ]
+  },
+  {
+    id: "user-2",
+    name: "Rahul Varma",
+    email: "rahul.ece@edunova.edu",
+    password: "rahul123",
+    role: "student",
+    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80",
+    department: "ece",
+    course: "B.Tech in Electronics & Communication",
+    college: "National Institute of Technology",
+    selectedInterests: ["Embedded Systems & Microcontrollers", "VLSI Design & Verilog", "Internet of Things (IoT)"],
+    overallProgress: 33,
+    completedLessons: 2,
+    totalLessons: 6,
+    averageQuizScore: 70,
+    streakDays: 3,
+    targetGoal: "Embedded Systems Engineer",
+    preferredLanguage: "en",
+    quizHistory: [
+      {
+        id: 102,
+        department: "ece",
+        score: 7,
+        total: 10,
+        percentage: 70,
+        date: "2 days ago",
+        strongAreas: ["Microcontrollers & Architecture"],
+        weakAreas: ["Verilog Timing Violations"]
+      }
+    ]
+  },
+  {
+    id: "admin-1",
+    name: "Prof. Ramesh Sharma (Admin)",
+    email: "admin@edunova.edu",
+    password: "admin123",
+    role: "admin",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
+    department: "ai_ds",
+    course: "Administrator & Academic Dean",
+    college: "EduNova University Administration",
+    selectedInterests: ["All Engineering Branches"],
+    overallProgress: 100,
+    completedLessons: 6,
+    totalLessons: 6,
+    averageQuizScore: 98,
+    streakDays: 30,
+    targetGoal: "Dean of Academic AI",
+    preferredLanguage: "en",
+    quizHistory: []
+  }
+];
+
+export const createNewStudentTemplate = (formData) => {
+  const deptInfo = engineeringDepartments.find(d => d.id === formData.department) || engineeringDepartments[0];
+  const selectedInterests = formData.selectedInterests && formData.selectedInterests.length > 0 
+    ? formData.selectedInterests 
+    : deptInfo.subjects.slice(0, 3);
+
+  return {
+    id: `user-${Date.now()}`,
+    name: formData.name?.trim() || "Student",
+    email: formData.email?.trim().toLowerCase(),
+    password: formData.password || "password123",
+    role: "student",
+    avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+    department: formData.department || "ai_ds",
+    course: `B.Tech in ${deptInfo.name}`,
+    college: formData.college?.trim() || "Engineering Institute",
+    selectedInterests: selectedInterests,
+    overallProgress: 0,
+    completedLessons: 0,
+    totalLessons: 6,
+    averageQuizScore: 0,
+    streakDays: 1,
+    targetGoal: formData.targetCareer || `${deptInfo.shortName} Specialist`,
+    preferredLanguage: "en",
+    quizHistory: []
+  };
 };
+
+export const initialUserData = defaultUsers[0];
 
 // Department-specific learning paths
 export const departmentLearningPaths = {

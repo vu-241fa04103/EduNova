@@ -14,16 +14,28 @@ import {
 } from 'lucide-react';
 
 export default function Analytics() {
-  const { analytics, user, setCurrentPage } = useLearning();
+  const {
+    enrolledSubjectMastery,
+    user,
+    setCurrentPage,
+    overallProgressPercent,
+    quizAccuracyAvg,
+    lastQuizResult
+  } = useLearning();
+
+  const quizCount = user?.quizHistory?.length || 0;
+  const weakCount = enrolledSubjectMastery.filter(s => s.isWeak).length;
+  const masteredConceptsCount = enrolledSubjectMastery.filter(s => s.score >= 75).length * 3 + (user.completedLessons || 0) * 2;
+  const totalStudyHours = Math.max(2.5, ((user.completedLessons || 0) * 2.5 + quizCount * 0.8)).toFixed(1);
 
   const weeklyActivity = [
-    { day: 'Mon', hours: 2.5, quizScore: 85 },
-    { day: 'Tue', hours: 3.0, quizScore: 90 },
-    { day: 'Wed', hours: 1.5, quizScore: 75 },
-    { day: 'Thu', hours: 4.0, quizScore: 88 },
-    { day: 'Fri', hours: 3.5, quizScore: 82 },
-    { day: 'Sat', hours: 2.0, quizScore: 78 },
-    { day: 'Sun', hours: 2.0, quizScore: 85 }
+    { day: 'Mon', hours: (user.streakDays || 1) >= 1 ? 2.5 : 0.5, quizScore: quizAccuracyAvg || 80 },
+    { day: 'Tue', hours: (user.streakDays || 1) >= 2 ? 3.0 : 0.8, quizScore: quizAccuracyAvg || 85 },
+    { day: 'Wed', hours: (user.streakDays || 1) >= 3 ? 1.5 : 0.5, quizScore: quizAccuracyAvg || 75 },
+    { day: 'Thu', hours: (user.streakDays || 1) >= 4 ? 4.0 : 1.2, quizScore: quizAccuracyAvg || 88 },
+    { day: 'Fri', hours: (user.streakDays || 1) >= 5 ? 3.5 : 1.0, quizScore: quizAccuracyAvg || 82 },
+    { day: 'Sat', hours: 2.0, quizScore: quizAccuracyAvg || 78 },
+    { day: 'Sun', hours: 2.0, quizScore: quizAccuracyAvg || 85 }
   ];
 
   return (
@@ -38,13 +50,13 @@ export default function Analytics() {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500">
-            Real-time skill diagnostics and learning gap identification for Smart India Hackathon 2026.
+            Real-time skill diagnostics and learning gap identification for your selected courses.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 border border-emerald-200">
-            Overall Health: Excellent (78%)
+            Overall Health: {overallProgressPercent >= 70 ? 'Excellent' : overallProgressPercent >= 40 ? 'Good' : 'Getting Started'} ({overallProgressPercent}%)
           </span>
         </div>
       </div>
@@ -56,8 +68,8 @@ export default function Analytics() {
             <span className="text-xs font-semibold">Total Study Time</span>
             <Clock className="h-4 w-4 text-indigo-600" />
           </div>
-          <p className="text-2xl font-black text-slate-900">18.5 <span className="text-xs font-medium text-slate-400">hrs</span></p>
-          <span className="text-[11px] font-bold text-emerald-600 mt-1 block">+3.2 hrs vs last week</span>
+          <p className="text-2xl font-black text-slate-900">{totalStudyHours} <span className="text-xs font-medium text-slate-400">hrs</span></p>
+          <span className="text-[11px] font-bold text-emerald-600 mt-1 block">Active Streak: {user.streakDays || 1} Days</span>
         </div>
 
         <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm">
@@ -65,8 +77,8 @@ export default function Analytics() {
             <span className="text-xs font-semibold">Quiz Accuracy</span>
             <Award className="h-4 w-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-black text-slate-900">85%</p>
-          <span className="text-[11px] font-bold text-indigo-600 mt-1 block">5 Tests Taken</span>
+          <p className="text-2xl font-black text-slate-900">{quizAccuracyAvg}%</p>
+          <span className="text-[11px] font-bold text-indigo-600 mt-1 block">{quizCount} Tests Taken</span>
         </div>
 
         <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm">
@@ -74,8 +86,10 @@ export default function Analytics() {
             <span className="text-xs font-semibold">Identified Gaps</span>
             <AlertTriangle className="h-4 w-4 text-rose-500" />
           </div>
-          <p className="text-2xl font-black text-rose-600">2 <span className="text-xs font-medium text-slate-400">topics</span></p>
-          <span className="text-[11px] font-bold text-rose-600 mt-1 block">DBMS & PCA</span>
+          <p className="text-2xl font-black text-rose-600">{weakCount} <span className="text-xs font-medium text-slate-400">topics</span></p>
+          <span className="text-[11px] font-bold text-rose-600 mt-1 block">
+            {weakCount > 0 ? 'Review Needed' : 'No Critical Gaps'}
+          </span>
         </div>
 
         <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm">
@@ -83,8 +97,8 @@ export default function Analytics() {
             <span className="text-xs font-semibold">Concepts Mastered</span>
             <CheckCircle className="h-4 w-4 text-emerald-500" />
           </div>
-          <p className="text-2xl font-black text-slate-900">24 <span className="text-xs font-medium text-slate-400">skills</span></p>
-          <span className="text-[11px] font-bold text-emerald-600 mt-1 block">85% readiness</span>
+          <p className="text-2xl font-black text-slate-900">{masteredConceptsCount} <span className="text-xs font-medium text-slate-400">skills</span></p>
+          <span className="text-[11px] font-bold text-emerald-600 mt-1 block">{overallProgressPercent}% Track Readiness</span>
         </div>
       </div>
 
@@ -95,15 +109,15 @@ export default function Analytics() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-                Subject Proficiency Matrix
+                Enrolled Subject Proficiency Matrix
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">Continuous evaluation across domains</p>
+              <p className="text-xs text-slate-500 mt-0.5">Continuous evaluation across your selected courses</p>
             </div>
             <span className="text-xs font-semibold text-slate-400">Target: 80%+</span>
           </div>
 
           <div className="space-y-5">
-            {analytics.map((subject) => (
+            {enrolledSubjectMastery.map((subject) => (
               <div key={subject.id} className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-800">
                   <div className="flex items-center gap-2">

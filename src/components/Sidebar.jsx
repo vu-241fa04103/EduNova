@@ -11,20 +11,29 @@ import {
   Flame,
   ChevronRight,
   Sparkles,
-  BookOpen
+  BookOpen,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { currentPage, setCurrentPage, user } = useLearning();
 
+  const isAdmin = user?.role === 'admin';
+
   const navigationItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, badge: null },
+    ...(isAdmin ? [
+      { id: 'admin-dashboard', name: 'Admin Console', icon: ShieldCheck, badge: 'Dean / Admin', badgeColor: 'bg-amber-100 text-amber-800' }
+    ] : []),
+    { id: 'dashboard', name: 'Student Dashboard', icon: LayoutDashboard, badge: null },
     { id: 'ai-tutor', name: 'AI Tutor', icon: Bot, badge: 'Smart AI', badgeColor: 'bg-indigo-100 text-indigo-700' },
     { id: 'learning-path', name: 'Learning Path', icon: MapPin, badge: 'Adaptive', badgeColor: 'bg-emerald-100 text-emerald-700' },
     { id: 'quiz', name: 'Smart Quiz', icon: HelpCircle, badge: null },
     { id: 'analytics', name: 'Analytics', icon: BarChart2, badge: 'Insights', badgeColor: 'bg-amber-100 text-amber-800' },
     { id: 'career', name: 'Career Guidance', icon: Compass, badge: null },
     { id: 'profile', name: 'My Profile', icon: User, badge: null },
+    ...(!isAdmin ? [
+      { id: 'admin-dashboard', name: 'Faculty Portal', icon: ShieldCheck, badge: 'Admin', badgeColor: 'bg-slate-100 text-slate-700' }
+    ] : [])
   ];
 
   const handleNavClick = (id) => {

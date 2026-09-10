@@ -16,7 +16,19 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, language, setCurrentPage, analytics, lastQuizResult, pathNodes } = useLearning();
+  const {
+    user,
+    language,
+    setCurrentPage,
+    lastQuizResult,
+    pathNodes,
+    completedLessonsCount,
+    totalLessonsCount,
+    overallProgressPercent,
+    quizAccuracyAvg,
+    enrolledSubjectMastery,
+    identifiedWeakAreaTopic
+  } = useLearning();
   const t = multilingualTranslations[language] || multilingualTranslations.en;
 
   // Find currently recommended topic
@@ -65,8 +77,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI Stats Grid */}
+      {/* KPI Stats Grid - Dynamic Real-Time Values */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Overall Progress */}
         <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Overall Progress</span>
@@ -74,13 +87,16 @@ export default function Dashboard() {
               <TrendingUp className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-3 text-2xl font-black text-slate-900">{user.overallProgress}%</p>
+          <p className="mt-3 text-2xl font-black text-slate-900">{overallProgressPercent}%</p>
           <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${user.overallProgress}%` }} />
+            <div className="bg-indigo-600 h-full rounded-full transition-all duration-500" style={{ width: `${overallProgressPercent}%` }} />
           </div>
-          <span className="mt-2 block text-[11px] font-medium text-emerald-600">On track for monthly goal</span>
+          <span className="mt-2 block text-[11px] font-medium text-emerald-600">
+            {overallProgressPercent > 0 ? `${overallProgressPercent}% track completed` : 'Start with your 1st lesson'}
+          </span>
         </div>
 
+        {/* Completed Lessons */}
         <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Completed Lessons</span>
@@ -88,13 +104,21 @@ export default function Dashboard() {
               <BookOpen className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-3 text-2xl font-black text-slate-900">{user.completedLessons} <span className="text-sm font-medium text-slate-400">/ {user.totalLessons}</span></p>
+          <p className="mt-3 text-2xl font-black text-slate-900">
+            {completedLessonsCount} <span className="text-sm font-medium text-slate-400">/ {totalLessonsCount}</span>
+          </p>
           <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${(user.completedLessons / user.totalLessons) * 100}%` }} />
+            <div
+              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              style={{ width: `${totalLessonsCount > 0 ? (completedLessonsCount / totalLessonsCount) * 100 : 0}%` }}
+            />
           </div>
-          <span className="mt-2 block text-[11px] font-medium text-slate-500">4 modules remaining</span>
+          <span className="mt-2 block text-[11px] font-medium text-slate-500">
+            {totalLessonsCount - completedLessonsCount} modules remaining
+          </span>
         </div>
 
+        {/* Avg Quiz Score */}
         <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Avg Quiz Score</span>
@@ -102,13 +126,21 @@ export default function Dashboard() {
               <HelpCircle className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-3 text-2xl font-black text-slate-900">{user.averageQuizScore}%</p>
+          <p className="mt-3 text-2xl font-black text-slate-900">
+            {quizAccuracyAvg > 0 ? `${quizAccuracyAvg}%` : '0%'}
+          </p>
           <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-amber-500 h-full rounded-full" style={{ width: `${user.averageQuizScore}%` }} />
+            <div
+              className="bg-amber-500 h-full rounded-full transition-all duration-500"
+              style={{ width: `${quizAccuracyAvg}%` }}
+            />
           </div>
-          <span className="mt-2 block text-[11px] font-medium text-indigo-600">Based on last 5 tests</span>
+          <span className="mt-2 block text-[11px] font-medium text-indigo-600">
+            {user?.quizHistory?.length ? `Based on ${user.quizHistory.length} tests taken` : 'Take quiz to evaluate'}
+          </span>
         </div>
 
+        {/* Study Streak */}
         <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Study Streak</span>
@@ -116,20 +148,24 @@ export default function Dashboard() {
               <Flame className="h-5 w-5 fill-orange-500" />
             </div>
           </div>
-          <p className="mt-3 text-2xl font-black text-slate-900">{user.streakDays} Days</p>
+          <p className="mt-3 text-2xl font-black text-slate-900">{user.streakDays || 1} Days</p>
           <div className="mt-2 flex gap-1">
-            {[1, 2, 3, 4, 5].map((d) => (
-              <div key={d} className="flex-1 h-1.5 rounded-full bg-orange-500"></div>
-            ))}
-            {[6, 7].map((d) => (
-              <div key={d} className="flex-1 h-1.5 rounded-full bg-slate-200"></div>
+            {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+              <div
+                key={d}
+                className={`flex-1 h-1.5 rounded-full ${
+                  d <= (user.streakDays || 1) ? 'bg-orange-500' : 'bg-slate-200'
+                }`}
+              />
             ))}
           </div>
-          <span className="mt-2 block text-[11px] font-medium text-orange-600">Top 10% consistent learner</span>
+          <span className="mt-2 block text-[11px] font-medium text-orange-600">
+            {(user.streakDays || 1) >= 5 ? 'Top 10% consistent learner' : 'Keep studying to build streak'}
+          </span>
         </div>
       </div>
 
-      {/* Main Content Grid: Personalized Recommendation & Weak Area Alert */}
+      {/* Main Content Grid: Personalized Recommendation & Diagnostics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Personalized Next Step */}
         <div className="lg:col-span-2 space-y-6">
@@ -150,18 +186,18 @@ export default function Dashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <span className="inline-block rounded-lg bg-indigo-600 px-2.5 py-0.5 text-[11px] font-bold text-white uppercase tracking-wider mb-2">
-                    {recommendedNode.subject}
+                    {recommendedNode.subject || user.selectedInterests?.[0] || "Core Engineering"}
                   </span>
                   <h3 className="text-xl font-extrabold text-slate-900">
-                    {recommendedNode.title}
+                    {recommendedNode.title || "Foundational Concepts & Principles"}
                   </h3>
                   <p className="mt-1 text-xs sm:text-sm text-slate-600 max-w-lg">
-                    {recommendedNode.recommendedReason || "Recommended next step based on your diagnostic evaluation."}
+                    {recommendedNode.recommendedReason || "Recommended next step based on your diagnostic evaluation and selected curriculum."}
                   </p>
                   <div className="mt-3 flex items-center gap-3 text-xs text-slate-500 font-medium">
-                    <span>⏱️ Est. time: {recommendedNode.duration}</span>
+                    <span>⏱️ Est. time: {recommendedNode.duration || "4 hrs"}</span>
                     <span>•</span>
-                    <span>4 Core Concepts</span>
+                    <span>{recommendedNode.topics?.length || 4} Core Concepts</span>
                     <span>•</span>
                     <span className="text-emerald-600 font-semibold">Ready to Study</span>
                   </div>
@@ -196,7 +232,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-800">Adaptive Quiz</p>
-                  <p className="text-[10px] text-slate-500">Test Machine Learning</p>
+                  <p className="text-[10px] text-slate-500">Test Your Selected Courses</p>
                 </div>
               </button>
 
@@ -209,7 +245,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-800">Learning Path</p>
-                  <p className="text-[10px] text-slate-500">6 Roadmap Nodes</p>
+                  <p className="text-[10px] text-slate-500">{pathNodes.length} Roadmap Milestones</p>
                 </div>
               </button>
 
@@ -222,7 +258,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-800">Career Match</p>
-                  <p className="text-[10px] text-slate-500">87% ML Engineer</p>
+                  <p className="text-[10px] text-slate-500">{user.targetGoal || "Engineering Role"}</p>
                 </div>
               </button>
             </div>
@@ -234,80 +270,114 @@ export default function Dashboard() {
               <h2 className="text-base sm:text-lg font-bold text-slate-900">
                 Latest Assessment Insights
               </h2>
-              <span className="text-xs font-semibold text-slate-400">Adaptive Evaluation</span>
+              <span className="text-xs font-semibold text-slate-400">
+                {lastQuizResult.taken ? `Score: ${lastQuizResult.percentage}% (${lastQuizResult.score}/${lastQuizResult.total})` : "Diagnostic Ready"}
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-2xl bg-emerald-50/80 p-4 border border-emerald-100">
-                <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs mb-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  <span>Strong Areas Mastered</span>
+            {lastQuizResult.taken && (lastQuizResult.strongAreas?.length > 0 || lastQuizResult.weakAreas?.length > 0) ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-emerald-50/80 p-4 border border-emerald-100">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs mb-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <span>Strong Areas Mastered</span>
+                  </div>
+                  <ul className="space-y-1.5 text-xs text-emerald-900">
+                    {lastQuizResult.strongAreas.map((area, idx) => (
+                      <li key={idx} className="flex items-center gap-1.5 font-medium">
+                        <span className="text-emerald-500 font-bold">✓</span> {area}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="space-y-1 text-xs text-emerald-900">
-                  {lastQuizResult.strongAreas.map((area, idx) => (
-                    <li key={idx} className="flex items-center gap-1.5 font-medium">
-                      <span className="text-emerald-500">✓</span> {area}
-                    </li>
-                  ))}
-                </ul>
-              </div>
 
-              <div className="rounded-2xl bg-rose-50/80 p-4 border border-rose-100">
-                <div className="flex items-center gap-2 text-rose-800 font-bold text-xs mb-2">
-                  <AlertTriangle className="h-4 w-4 text-rose-600" />
-                  <span>Needs Practice (Gaps Identified)</span>
+                <div className="rounded-2xl bg-rose-50/80 p-4 border border-rose-100">
+                  <div className="flex items-center gap-2 text-rose-800 font-bold text-xs mb-2">
+                    <AlertTriangle className="h-4 w-4 text-rose-600" />
+                    <span>Needs Practice (Gaps Identified)</span>
+                  </div>
+                  <ul className="space-y-1.5 text-xs text-rose-900">
+                    {lastQuizResult.weakAreas.map((area, idx) => (
+                      <li key={idx} className="flex items-center gap-1.5 font-medium">
+                        <span className="text-rose-500 font-bold">⚠</span> {area}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="space-y-1 text-xs text-rose-900">
-                  {lastQuizResult.weakAreas.map((area, idx) => (
-                    <li key={idx} className="flex items-center gap-1.5 font-medium">
-                      <span className="text-rose-500">⚠</span> {area}
-                    </li>
-                  ))}
-                </ul>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-2xl bg-slate-50 p-6 border border-slate-200 text-center">
+                <HelpCircle className="h-8 w-8 text-indigo-500 mx-auto mb-2" />
+                <h4 className="text-sm font-bold text-slate-800">No Assessment Taken Yet</h4>
+                <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                  Take your first smart adaptive quiz to diagnose strengths, identify learning gaps, and tailor your roadmap.
+                </p>
+                <button
+                  onClick={() => setCurrentPage('quiz')}
+                  className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow hover:bg-indigo-700 transition"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Start Diagnostic Quiz</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right 1 Col: Subject Mastery & Gap Alerts */}
+        {/* Right 1 Col: Subject Mastery tailored ONLY to selected courses */}
         <div className="space-y-6">
           <div className="rounded-3xl bg-white p-6 border border-slate-100 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900">Subject Mastery</h3>
+              <div>
+                <h3 className="font-bold text-slate-900">Selected Courses Mastery</h3>
+                <p className="text-[11px] text-slate-400">Showing only your enrolled subjects</p>
+              </div>
               <button
-                onClick={() => setCurrentPage('analytics')}
+                onClick={() => setCurrentPage('profile')}
                 className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
               >
-                View Details →
+                Edit Courses →
               </button>
             </div>
 
             <div className="space-y-4">
-              {analytics.map((sub) => (
-                <div key={sub.id}>
+              {enrolledSubjectMastery.map((sub) => (
+                <div key={sub.id} className="p-2.5 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100">
                   <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
-                    <span>{sub.name}</span>
-                    <span className="flex items-center gap-1">
+                    <span className="truncate pr-2">{sub.name}</span>
+                    <span className="flex items-center gap-1 shrink-0">
                       {sub.score}%
-                      <span className={`text-[10px] font-normal ${sub.trend.startsWith('+') ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <span className={`text-[10px] font-normal ${sub.trend.startsWith('+') ? 'text-emerald-600' : sub.trend.startsWith('-') ? 'text-rose-600' : 'text-slate-400'}`}>
                         ({sub.trend})
                       </span>
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`h-full rounded-full bg-gradient-to-r ${sub.color}`}
+                      className={`h-full rounded-full bg-gradient-to-r ${sub.color} transition-all duration-500`}
                       style={{ width: `${sub.score}%` }}
                     />
                   </div>
                   {sub.isWeak && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 mt-1">
-                      ⚠ Identified Weak Area: Practice SQL Joins
+                      ⚠ Identified Weak Area: Practice {sub.name}
                     </span>
                   )}
                 </div>
               ))}
             </div>
+
+            {identifiedWeakAreaTopic && (
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <div className="flex items-start gap-2 text-rose-700 bg-rose-50 p-2.5 rounded-xl text-xs">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+                  <div>
+                    <span className="font-bold block">AI Diagnostic Gap:</span>
+                    <span>{identifiedWeakAreaTopic}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* AI Tutor Quick Launcher Card */}
@@ -322,7 +392,7 @@ export default function Dashboard() {
               </div>
             </div>
             <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-              "Stuck on Eigenvalues in PCA? Ask me to explain it using simple real-world analogies or diagrams!"
+              "Stuck on any concept in your enrolled subjects? Ask me to explain it using simple real-world analogies or step-by-step logic!"
             </p>
             <button
               onClick={() => setCurrentPage('ai-tutor')}

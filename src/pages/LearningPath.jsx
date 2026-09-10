@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useLearning } from '../context/LearningContext';
-import { engineeringDepartments } from '../data/mockData';
 import {
   CheckCircle2,
   Lock,
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export default function LearningPath() {
-  const { pathNodes, setPathNodes, setCurrentPage, user, changeDepartment } = useLearning();
+  const { pathNodes, setPathNodes, setCurrentPage, user, changeDepartment, departments, markLessonComplete } = useLearning();
   const [selectedNode, setSelectedNode] = useState(() => pathNodes.find(n => n.status === 'recommended') || pathNodes[0]);
 
   // Sync selectedNode when pathNodes changes (e.g. department switch)
@@ -26,25 +25,11 @@ export default function LearningPath() {
     setSelectedNode(pathNodes.find(n => n.status === 'recommended') || pathNodes[0]);
   }, [pathNodes]);
 
-  const activeDeptInfo = engineeringDepartments.find(d => d.id === user.department) || engineeringDepartments[0];
+  const activeDeptInfo = departments?.find(d => d.id === user.department) || departments?.[0] || {};
 
   const handleMarkComplete = (nodeId) => {
-    setPathNodes(prev =>
-      prev.map(node => {
-        if (node.id === nodeId) {
-          return { ...node, status: 'completed', score: 92 };
-        }
-        if (node.id === nodeId + 1 && node.status === 'locked') {
-          return {
-            ...node,
-            status: 'recommended',
-            recommendedReason: 'Unlocked! Next sequential milestone in your engineering track.'
-          };
-        }
-        return node;
-      })
-    );
-    setSelectedNode(prev => ({ ...prev, status: 'completed', score: 92 }));
+    markLessonComplete(nodeId);
+    setSelectedNode(prev => ({ ...prev, status: 'completed', score: 95 }));
   };
 
   const completedCount = pathNodes.filter(n => n.status === 'completed').length;
@@ -90,7 +75,7 @@ export default function LearningPath() {
             <Layers className="h-3.5 w-3.5 text-indigo-600" />
             Track:
           </span>
-          {engineeringDepartments.map((dept) => {
+          {departments.map((dept) => {
             const isCurrent = user.department === dept.id;
             return (
               <button

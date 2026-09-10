@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
 import { useLearning } from '../context/LearningContext';
-import { Sparkles, ArrowRight, CheckCircle2, ShieldCheck, BookOpen } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, UserCheck, Lock, AlertCircle, KeyRound, Check } from 'lucide-react';
 
 export default function Login() {
-  const { login, setCurrentPage, user } = useLearning();
-  const [name, setName] = useState('');
+  const { login, setCurrentPage } = useLearning();
+  const [activeTab, setActiveTab] = useState('student'); // 'student' | 'admin'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    login(email, password, name);
+    setErrorMessage('');
+    const result = login(email, password);
+    if (!result.success) {
+      setErrorMessage(result.message);
+    }
   };
 
-  const handleDemoLogin = () => {
-    login('student@edunova.edu', 'demo123', name || user?.name || 'Student');
+  const handleQuickLogin = (demoEmail, demoPassword, role) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setActiveTab(role);
+    setErrorMessage('');
+    login(demoEmail, demoPassword);
   };
 
   return (
@@ -38,77 +47,119 @@ export default function Login() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight mb-4">
-            AI-Powered Personalized Learning for Every Student.
+            Continuous Personalized Engineering Learning.
           </h1>
           <p className="text-indigo-200 text-base max-w-md leading-relaxed mb-8">
-            Experience smart doubt solving, continuous performance analysis, adaptive quizzes, and tailored career pathways.
+            Adaptive quizzes diagnose exact learning gaps, real-time metrics update dynamically, and faculty administrators monitor student growth.
           </p>
 
-          {/* Learning Flow Pills */}
+          {/* Quick Demo Access Badges */}
           <div className="space-y-3 max-w-md bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10">
             <p className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-              The EduNova Learning Loop
+              🔑 Saved Demo Accounts (Ready to Test):
             </p>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-              <span className="bg-indigo-600/60 px-3 py-1.5 rounded-lg border border-indigo-400/30">1. Learn</span>
-              <span>→</span>
-              <span className="bg-indigo-600/60 px-3 py-1.5 rounded-lg border border-indigo-400/30">2. Analyze</span>
-              <span>→</span>
-              <span className="bg-indigo-600/60 px-3 py-1.5 rounded-lg border border-indigo-400/30">3. Recommend</span>
-              <span>→</span>
-              <span className="bg-indigo-600/60 px-3 py-1.5 rounded-lg border border-indigo-400/30">4. Practice</span>
-              <span>→</span>
-              <span className="bg-indigo-600/60 px-3 py-1.5 rounded-lg border border-indigo-400/30">5. Improve</span>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between bg-black/20 p-2.5 rounded-xl border border-white/10">
+                <div>
+                  <span className="font-bold text-white block">Student Demo (AI/DS):</span>
+                  <span className="text-indigo-200">student@edunova.edu / demo123</span>
+                </div>
+                <button
+                  onClick={() => handleQuickLogin('student@edunova.edu', 'demo123', 'student')}
+                  className="px-2.5 py-1 bg-white text-indigo-800 font-bold rounded-lg text-[11px] hover:bg-indigo-50 shadow"
+                >
+                  Load
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between bg-black/20 p-2.5 rounded-xl border border-white/10">
+                <div>
+                  <span className="font-bold text-white block">Student Demo (ECE):</span>
+                  <span className="text-indigo-200">rahul.ece@edunova.edu / rahul123</span>
+                </div>
+                <button
+                  onClick={() => handleQuickLogin('rahul.ece@edunova.edu', 'rahul123', 'student')}
+                  className="px-2.5 py-1 bg-white text-indigo-800 font-bold rounded-lg text-[11px] hover:bg-indigo-50 shadow"
+                >
+                  Load
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between bg-amber-500/20 p-2.5 rounded-xl border border-amber-300/30">
+                <div>
+                  <span className="font-bold text-amber-300 flex items-center gap-1">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Admin Portal Demo:
+                  </span>
+                  <span className="text-amber-100">admin@edunova.edu / admin123</span>
+                </div>
+                <button
+                  onClick={() => handleQuickLogin('admin@edunova.edu', 'admin123', 'admin')}
+                  className="px-2.5 py-1 bg-amber-400 text-slate-900 font-bold rounded-lg text-[11px] hover:bg-amber-300 shadow"
+                >
+                  Load Admin
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="relative z-10 pt-8 border-t border-indigo-700/50 flex items-center justify-between text-xs text-indigo-300">
-          <span>Smart Education Category</span>
-          <span>Smart India Hackathon</span>
+          <span>Smart Education Platform</span>
+          <span>Smart India Hackathon 2026</span>
         </div>
       </div>
 
       {/* Right Login Form */}
       <div className="md:w-1/2 flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 shadow-xl shadow-slate-200/60 border border-slate-100">
+          {/* Portal Switcher Tabs */}
+          <div className="flex rounded-2xl bg-slate-100 p-1.5 mb-6 border border-slate-200/80">
+            <button
+              type="button"
+              onClick={() => { setActiveTab('student'); setErrorMessage(''); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'student'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <UserCheck className="h-4 w-4" />
+              <span>Student Portal</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('admin'); setErrorMessage(''); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'admin'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>Admin Portal</span>
+            </button>
+          </div>
+
           <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold text-slate-900">Student Portal Login</h2>
+            <h2 className="text-2xl font-bold text-slate-900">
+              {activeTab === 'admin' ? 'Admin / Faculty Login' : 'Student Account Login'}
+            </h2>
             <p className="text-sm text-slate-500 mt-1">
-              Enter your student credentials to access your dashboard
+              {activeTab === 'admin'
+                ? 'Sign in with administrator credentials to manage courses & student metrics'
+                : 'Enter your credentials to access your personalized learning roadmap'}
             </p>
           </div>
 
-          {/* One-click demo login pill */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="w-full mb-5 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/70 p-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100/60 transition shadow-sm"
-          >
-            <Sparkles className="h-4 w-4 text-indigo-600" />
-            <span>One-Click Student Demo Login</span>
-          </button>
-
-          <div className="relative flex items-center justify-center mb-6">
-            <div className="border-t border-slate-200 w-full"></div>
-            <span className="bg-white px-3 text-xs text-slate-400 uppercase font-medium">Or enter details</span>
-          </div>
+          {errorMessage && (
+            <div className="mb-5 flex items-start gap-2.5 rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs text-rose-700">
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Your Full Name (Display Name)
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Vaishnavi"
-                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 transition"
-              />
-            </div>
-
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Email Address
@@ -118,7 +169,7 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="student@edunova.edu"
+                placeholder={activeTab === 'admin' ? "admin@edunova.edu" : "student@edunova.edu"}
                 className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 transition"
               />
             </div>
@@ -142,27 +193,33 @@ export default function Login() {
                 <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500" />
                 Remember me
               </label>
-              <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-700">Forgot password?</a>
+              <span className="text-[11px] text-slate-400">Credentials stored securely</span>
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 p-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:from-indigo-700 hover:to-indigo-800 transition flex items-center justify-center gap-2"
+              className={`w-full rounded-xl p-3 text-sm font-bold text-white shadow-lg transition flex items-center justify-center gap-2 ${
+                activeTab === 'admin'
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-amber-200'
+                  : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-indigo-200'
+              }`}
             >
-              <span>Login to EduNova</span>
+              <span>{activeTab === 'admin' ? 'Access Admin Console' : 'Login to Student Portal'}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
 
-          <div className="mt-6 text-center text-xs text-slate-500">
-            Don't have an account yet?{' '}
-            <button
-              onClick={() => setCurrentPage('signup')}
-              className="font-bold text-indigo-600 hover:text-indigo-700"
-            >
-              Sign Up here
-            </button>
-          </div>
+          {activeTab === 'student' && (
+            <div className="mt-6 text-center text-xs text-slate-500">
+              Don't have an account yet?{' '}
+              <button
+                onClick={() => setCurrentPage('signup')}
+                className="font-bold text-indigo-600 hover:text-indigo-700"
+              >
+                Sign Up as New Student
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

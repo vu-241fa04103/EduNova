@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useLearning } from '../context/LearningContext';
-import { departmentQuizzes, engineeringDepartments } from '../data/mockData';
 import {
   HelpCircle,
   CheckCircle2,
@@ -17,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function Quiz() {
-  const { processQuizResults, setCurrentPage, lastQuizResult, user } = useLearning();
+  const { processQuizResults, setCurrentPage, lastQuizResult, user, departments, quizzes } = useLearning();
 
   const [selectedSubject, setSelectedSubject] = useState(user.department || 'ai_ds');
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -27,15 +26,15 @@ export default function Quiz() {
 
   // Sync selectedSubject if user.department changes
   useEffect(() => {
-    if (user.department && departmentQuizzes[user.department]) {
+    if (user.department && quizzes[user.department]) {
       setSelectedSubject(user.department);
       setCurrentQuestionIdx(0);
       setSelectedAnswers({});
       setIsSubmitted(false);
     }
-  }, [user.department]);
+  }, [user.department, quizzes]);
 
-  const questions = departmentQuizzes[selectedSubject] || departmentQuizzes.ai_ds;
+  const questions = quizzes[selectedSubject] || quizzes.ai_ds || [];
   const currentQ = questions[currentQuestionIdx] || questions[0];
 
   const handleSelectSubject = (deptId) => {
@@ -109,7 +108,7 @@ export default function Quiz() {
     setIsSubmitted(true);
 
     // Update global state & learning path
-    processQuizResults(score, questions.length, report.weakAreas, report.strongAreas);
+    processQuizResults(score, questions.length, report.weakAreas, report.strongAreas, selectedSubject);
   };
 
   const handleReset = () => {
@@ -144,7 +143,7 @@ export default function Quiz() {
               disabled={isSubmitted}
               className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 cursor-pointer"
             >
-              {engineeringDepartments.map((dept) => (
+              {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
                   {dept.shortName} Assessment
                 </option>

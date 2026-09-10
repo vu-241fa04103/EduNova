@@ -11,9 +11,10 @@ import Quiz from './pages/Quiz';
 import Analytics from './pages/Analytics';
 import Career from './pages/Career';
 import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
 
 function AppContent() {
-  const { isAuthenticated, currentPage } = useLearning();
+  const { isAuthenticated, currentPage, user } = useLearning();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // If not authenticated, render auth views
@@ -24,6 +25,8 @@ function AppContent() {
   // Render active page
   const renderActivePage = () => {
     switch (currentPage) {
+      case 'admin-dashboard':
+        return <AdminDashboard />;
       case 'dashboard':
         return <Dashboard />;
       case 'ai-tutor':
@@ -39,7 +42,7 @@ function AppContent() {
       case 'profile':
         return <Profile />;
       default:
-        return <Dashboard />;
+        return user?.role === 'admin' ? <AdminDashboard /> : <Dashboard />;
     }
   };
 

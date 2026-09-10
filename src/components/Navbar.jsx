@@ -78,7 +78,13 @@ export default function Navbar({ onToggleSidebar }) {
           />
           <div className="hidden text-left md:block">
             <p className="text-xs font-bold text-slate-800 leading-tight">{user?.name || "Student"}</p>
-            <p className="text-[10px] text-slate-500 leading-none">Student</p>
+            <p className="text-[10px] text-slate-500 leading-none">
+              {user?.role === 'admin' ? (
+                <span className="font-bold text-amber-600">Admin / Faculty</span>
+              ) : (
+                'Student'
+              )}
+            </p>
           </div>
         </div>
 

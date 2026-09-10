@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function Profile() {
-  const { user, setUser, language, setLanguage, logout, changeDepartment, updateAvatar } = useLearning();
+  const { user, setUser, language, setLanguage, logout, changeDepartment, updateAvatar, departments } = useLearning();
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const fileInputRef = useRef(null);
@@ -33,12 +33,12 @@ export default function Profile() {
   const [selectedDept, setSelectedDept] = useState(user.department || 'ai_ds');
   const [interests, setInterests] = useState(user.selectedInterests || []);
 
-  const activeDeptInfo = engineeringDepartments.find(d => d.id === selectedDept) || engineeringDepartments[0];
+  const activeDeptInfo = departments?.find(d => d.id === selectedDept) || departments?.[0] || {};
 
   // Handle department change in dropdown
   const handleDepartmentChange = (deptId) => {
     setSelectedDept(deptId);
-    const newDept = engineeringDepartments.find(d => d.id === deptId);
+    const newDept = departments?.find(d => d.id === deptId);
     if (newDept) {
       setInterests(newDept.subjects.slice(0, 3)); // default select first 3
     }
@@ -199,7 +199,7 @@ export default function Profile() {
               onChange={(e) => handleDepartmentChange(e.target.value)}
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 focus:border-indigo-600 focus:bg-white focus:outline-none transition cursor-pointer"
             >
-              {engineeringDepartments.map((dept) => (
+              {departments?.map((dept) => (
                 <option key={dept.id} value={dept.id}>
                   {dept.name} ({dept.shortName})
                 </option>
